@@ -21,7 +21,7 @@ pub fn get_entities_to_fetch(file_name: impl AsRef<Path>) -> HashSet<String> {
 
 pub fn save_entities_diff(item_bulk: &Vec::<WikidataItem>, file_name: impl AsRef<Path>,
                           output_dir: impl AsRef<Path>,current_counter: &mut u8) {
-    let final_filename = format!("{}_{}.json", file_name.as_ref().file_name().unwrap().to_str().unwrap(),
+    let final_filename = format!("{}_{}.json", file_name.as_ref().file_stem().unwrap().to_str().unwrap(),
                                  current_counter);
 
     let path = Path::new(&output_dir.as_ref().as_os_str()).join(final_filename.replace("xml", "json"));

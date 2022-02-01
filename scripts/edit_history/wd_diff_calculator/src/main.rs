@@ -5,15 +5,18 @@ use crate::model::{WikidataItem, WikidataRevision};
 use crate::utils::{get_entities_to_fetch, save_entities_diff};
 
 use std::collections::HashSet;
-use std::fs::read_dir;
+use std::fs::{DirEntry, File, read_dir, remove_file};
 use std::path::Path;
-use std::time::Instant;
+use std::os::unix::io::{FromRawFd, IntoRawFd};
+use std::process::{Command, Stdio};
 
 use clap::Parser;
+use indicatif::{ParallelProgressIterator, ProgressBar};
 use json_patch::{diff};
 use quick_xml::Reader;
 use quick_xml::events::Event;
 use quick_xml::events::BytesStart;
+use rayon::prelude::*;
 use serde_json::{Value};
 
 
@@ -173,18 +176,45 @@ pub fn main() {
 
     let file_paths = read_dir(args.input_dir).unwrap();
 
-    let now = Instant::now();
-    for dir_entry in file_paths {
-        let path = dir_entry.unwrap().path();
-        // TODO: unzip file
+    // Fail if any dir entry is error
+    let entries = file_paths.collect::<Result<Vec<DirEntry>, _>>().expect("Error getting files from input folder");
+    
+    let pb = ProgressBar::new(entries.len() as u64)
+        .with_message("Files processed");
+
+    entries.par_iter().progress_with(pb).for_each(|dir_entry| {
+        let path = dir_entry.path();
+        match path.extension() {
+            Some(ext) => {
+                if ext != "7z" {
+                    return;
+                }
+            },
+            None => return
+        }
+        
+        println!("Extracting file {:?}...", path);
+        let new_filename = path.to_str().unwrap().replace(".7z", ".xml");
+        let fd = File::create(&new_filename).unwrap().into_raw_fd();
+        
+        // from_raw_fd is only considered unsafe if the file is used for mmap
+        let out = unsafe {Stdio::from_raw_fd(fd)};
+
+        let mut child = Command::new("7z")
+            .args(["e", &path.to_str().unwrap(), "-so"])
+            .stdout(out)
+            .spawn()
+            .expect("failed to execute process");
+        child.wait().unwrap();
+        
+        println!("File '{:?}' extracted", path);
 
         println!("Procesing file: {:?}", path);
-        process_file(&path, &args.output_dir, &entities_to_fetch, args.bulk_size);
+        process_file(&new_filename, &args.output_dir, &entities_to_fetch, args.bulk_size);
         println!("File {:?} has been processed.", path);
 
-        // TODO: delete unzipped file
-    }
-    let elapsed_time = now.elapsed();
+        let error_msg = format!("File {} could not be deleted!", new_filename);
+        remove_file(new_filename).expect(&error_msg);
 
-    println!("Time taken to execute program: {} seconds.", elapsed_time.as_secs());
+    });
 }

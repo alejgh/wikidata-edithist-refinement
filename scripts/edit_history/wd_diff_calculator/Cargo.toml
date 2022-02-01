@@ -6,8 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-elasticsearch = "7.14.0-alpha.1"
+clap = { version = "3.0.13", features = ["derive"] }
 json-patch = "*"
 quick-xml = "0.22.0"
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "*", features = ["full"] }

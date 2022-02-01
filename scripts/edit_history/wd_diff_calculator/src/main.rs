@@ -1,36 +1,47 @@
 mod model;
+mod utils;
 
 use crate::model::{WikidataItem, WikidataRevision};
+use crate::utils::{get_entities_to_fetch, save_entities_diff};
 
-use std::fs::File;
+use std::collections::HashSet;
+use std::fs::read_dir;
 use std::path::Path;
 use std::time::Instant;
 
+use clap::Parser;
 use json_patch::{diff};
 use quick_xml::Reader;
 use quick_xml::events::Event;
 use quick_xml::events::BytesStart;
 use serde_json::{Value};
 
-fn write_patch(timestamp: &str, title: &str, patch: &json_patch::Patch) {
-    let filename = format!("{}.json", timestamp);
-    let folder = format!("./{}", title);
 
-    let path = Path::new(&folder).join(filename);
-    let display = path.display();
-    
-    let file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why),
-        Ok(file) => file,
-    };
+/// Processes Wikidata meta history dump files to calculate the diff of each entity and saves results to dir
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Input directory where the meta history dump files are stored
+    #[clap(short, long)]
+    input_dir: String,
 
-    serde_json::to_writer(file, patch);
+    /// Folder where results will be saved
+    #[clap(short, long)]
+    output_dir: String,
+
+    /// Number of entities to save in each file
+    #[clap(short, long, default_value_t=100)]
+    bulk_size: usize,
+
+
+    /// File containing a list of entities (delimited by newline) which will be processed from the dumps
+    #[clap(short, long)]
+    entities_file: Option<String>,
 }
 
 
-fn process_file(file_name: impl AsRef<Path>) {
-    let elastic_bulk_length = 100;
-
+fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
+                entities_to_fetch: &Option<HashSet<String>>, bulk_size: usize) {
     let mut xml_reader = Reader::from_file(file_name).unwrap();
     xml_reader.trim_text(true);
 
@@ -52,7 +63,8 @@ fn process_file(file_name: impl AsRef<Path>) {
     let mut current_revision = WikidataRevision::default();
 
     // bulk of items to index in ElasticSearch
-    let mut item_bulk = Vec::<WikidataItem>::new();
+    let mut item_bulk = Vec::<WikidataItem>::with_capacity(bulk_size);
+    let mut bulk_counter: u8 = 0;
 
     // The `Reader` does not implement `Iterator` because it outputs borrowed data (`Cow`s)
     loop {
@@ -65,12 +77,12 @@ fn process_file(file_name: impl AsRef<Path>) {
                     b"page" => {
                         // reset state for next page
                         current_item = WikidataItem::default();
+                        previous_json = None;
                         valid_entity = false;
                     },
                     b"revision" => {
                         // reset state for next revision
                         current_revision = WikidataRevision::default();
-                        previous_json = None;
                         valid_format = false;
                     },
                     _ => ()
@@ -82,7 +94,10 @@ fn process_file(file_name: impl AsRef<Path>) {
                         current_item.entity_id = e.unescape_and_decode(&xml_reader).unwrap();
                         println!("title: {:?}", current_item.entity_id);
 
-                        valid_entity = entities_to_fetch.contains(current_item.entity_id);
+                        match entities_to_fetch {
+                            Some(entities) => valid_entity = entities.contains(&current_item.entity_id),
+                            None => valid_entity = true
+                        }
                     },
                     b"format" => {
                         let content_type = e.unescape_and_decode(&xml_reader).unwrap();
@@ -98,15 +113,13 @@ fn process_file(file_name: impl AsRef<Path>) {
                         
                         let entity_json: Value = serde_json::from_str(&e.unescape_and_decode(&xml_reader).unwrap()).unwrap();
 
-                        match previous_json {
-                            Some(js) => current_revision.entity_diff = Some(diff(&js, &entity_json)),
-                            None => {
-                                let left = serde_json::from_str("{}").unwrap();
-                                current_revision.entity_diff = Some(diff(&left, &entity_json));
-                            }
+                        if previous_json.is_none() {
+                            let left = serde_json::from_str("{}").unwrap();
+                            current_revision.entity_diff = Some(diff(&left, &entity_json));
+                        } else {
+                            current_revision.entity_diff = Some(diff(&previous_json.unwrap(), &entity_json));
                         }
 
-                        //write_patch(&current_timestamp, &current_title, &patch);
                         previous_json = Some(entity_json);
                     },
                     _ => ()
@@ -115,11 +128,17 @@ fn process_file(file_name: impl AsRef<Path>) {
             Ok(Event::End(ref e)) => {
                 match e.name() {
                     b"page" => {
+                        if !valid_entity || !valid_format {
+                            continue;
+                        }
+
+
+                        current_item.entity_json = serde_json::to_string(&previous_json).unwrap();
+
                         // add entity to list and see if we can bulk index in ES
                         item_bulk.push(current_item.clone());
-
-                        if item_bulk.len() > elastic_bulk_length {
-                            // TODO: index to ES
+                        if item_bulk.len() > bulk_size {
+                            save_entities_diff(&item_bulk, file_name, output_dir, &mut bulk_counter);
                             item_bulk.clear();
                         }
                     },
@@ -138,19 +157,33 @@ fn process_file(file_name: impl AsRef<Path>) {
         buf.clear();
     }
 
-    // TODO: index to ES remaining items after finishing the file (last bulk)
+    // saving remaining entities of last bulk after EOF
+    save_entities_diff(&item_bulk, file_name, output_dir, &mut bulk_counter);
+    item_bulk.clear();
 }
 
-#[tokio::main]
-pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let file = Path::new("./wikidata_a.xml");
-    let entities_to_fetch = get_entities_to_fetch();
 
-    let transport = Transport::single_node("https://example.com")?;
-    let client = Elasticsearch::new(transport); 
+pub fn main() {
+    let args = Args::parse();
+
+    let entities_to_fetch = match args.entities_file {
+        Some(f) => Some(get_entities_to_fetch(f)),
+        None => None
+    };
+
+    let file_paths = read_dir(args.input_dir).unwrap();
 
     let now = Instant::now();
-    process_file(file);
+    for dir_entry in file_paths {
+        let path = dir_entry.unwrap().path();
+        // TODO: unzip file
+
+        println!("Procesing file: {:?}", path);
+        process_file(&path, &args.output_dir, &entities_to_fetch, args.bulk_size);
+        println!("File {:?} has been processed.", path);
+
+        // TODO: delete unzipped file
+    }
     let elapsed_time = now.elapsed();
 
     println!("Time taken to execute program: {} seconds.", elapsed_time.as_secs());

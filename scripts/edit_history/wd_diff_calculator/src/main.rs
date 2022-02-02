@@ -58,6 +58,10 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
     let mut valid_entity: bool = false;
     let mut valid_format: bool = false;
 
+    // know where we are in the tree
+    let mut inside_revision: bool = false;
+    let mut inside_contributor: bool = false;
+
     // keep state of previous entity json to compute diff
     let mut previous_json: Option<Value> = None;
 
@@ -77,6 +81,9 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
                 current_tag = owned_name.name().clone();
 
                 match current_tag {
+                    b"contributor" => {
+                        inside_contributor = true;
+                    },
                     b"page" => {
                         // reset state for next page
                         current_item = WikidataItem::default();
@@ -87,6 +94,7 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
                         // reset state for next revision
                         current_revision = WikidataRevision::default();
                         valid_format = false;
+                        inside_revision = true;
                     },
                     _ => ()
                 }
@@ -95,16 +103,29 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
                 match current_tag {
                     b"title" => {
                         current_item.entity_id = e.unescape_and_decode(&xml_reader).unwrap();
-                        println!("title: {:?}", current_item.entity_id);
+                        //println!("title: {:?}", current_item.entity_id);
 
                         match entities_to_fetch {
                             Some(entities) => valid_entity = entities.contains(&current_item.entity_id),
                             None => valid_entity = true
                         }
                     },
+                    b"comment" => {
+                        current_revision.comment = e.unescape_and_decode(&xml_reader).unwrap();
+                    },
                     b"format" => {
                         let content_type = e.unescape_and_decode(&xml_reader).unwrap();
                         valid_format = content_type == "application/json";
+                    },
+                    b"id" => {
+                        if inside_revision && !inside_contributor {
+                            current_revision.id = e.unescape_and_decode(&xml_reader).unwrap().parse::<u64>().unwrap();
+                        } else if !inside_revision {
+                            current_item.id = e.unescape_and_decode(&xml_reader).unwrap().parse::<u64>().unwrap();
+                        }
+                    },
+                    b"parentid" => {
+                        current_revision.parent_id = e.unescape_and_decode(&xml_reader).unwrap().parse::<u64>().unwrap();
                     },
                     b"timestamp" => {
                         current_revision.timestamp = e.unescape_and_decode(&xml_reader).unwrap();
@@ -125,11 +146,17 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
 
                         previous_json = Some(entity_json);
                     },
+                    b"username" => {
+                        current_revision.username= e.unescape_and_decode(&xml_reader).unwrap(); 
+                    },
                     _ => ()
                 }
             },
             Ok(Event::End(ref e)) => {
                 match e.name() {
+                    b"contributor" => {
+                        inside_contributor = false;
+                    },
                     b"page" => {
                         if !valid_entity || !valid_format {
                             continue;
@@ -147,6 +174,7 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
                     },
                     b"revision" => {
                         current_item.revisions.push(current_revision.clone());
+                        inside_revision = false;
                     },
                     _ => ()
                 }
@@ -161,8 +189,10 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
     }
 
     // saving remaining entities of last bulk after EOF
-    save_entities_diff(&item_bulk, file_name, output_dir, &mut bulk_counter);
-    item_bulk.clear();
+    if item_bulk.len() > 0 {
+        save_entities_diff(&item_bulk, file_name, output_dir, &mut bulk_counter);
+        item_bulk.clear();
+    }
 }
 
 

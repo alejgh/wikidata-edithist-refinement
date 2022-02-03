@@ -1,5 +1,5 @@
 [package]
-name = "elasticsearch_indexer"
+name = "diff_indexer"
 version = "0.1.0"
 edition = "2021"
 

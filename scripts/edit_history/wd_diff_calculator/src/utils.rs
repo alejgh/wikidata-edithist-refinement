@@ -32,7 +32,7 @@ pub fn save_entities_diff(item_bulk: &Vec::<WikidataItem>, file_name: impl AsRef
         Ok(file) => file,
     };
 
-    serde_json::to_writer(file, item_bulk);
+    serde_json::to_writer(file, item_bulk).expect("There was an error writing the entities diff to a file");
 
     *current_counter += 1;
 }

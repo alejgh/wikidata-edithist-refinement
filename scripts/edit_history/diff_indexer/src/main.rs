@@ -90,33 +90,30 @@ async fn index_entities(client: &Elasticsearch, entities: &mut Vec<Value>) -> Re
     for e in entities.iter_mut() {
         let revisions: &mut Vec<Value> = e.get_mut("revisions").unwrap().as_array_mut().unwrap();
         for rev in revisions.iter_mut() {
-            let diff = rev.get_mut("entity_diff").unwrap().as_array_mut().unwrap();
-            for d in diff.iter_mut() {
-                if d.get("value") != None && d.get("value").unwrap().as_object() == None && d.get("value").unwrap().as_array() == None {
-                    let obj = d.as_object_mut().unwrap();
-                    let key = "stringValue";
-                    let value = obj.remove("value").unwrap();
-                    obj.insert(key.to_string(), value);
+            if rev.get("entity_diff") != None && rev.get("entity_diff").unwrap().as_array() != None {
+                let diff = rev.get_mut("entity_diff").unwrap().as_array_mut().unwrap();
+                for d in diff.iter_mut() {
+                    if d.get("value") != None {
+                        let obj = d.as_object_mut().unwrap();
+                        let key = "value";
+                        let value = obj.remove("value").unwrap();
+                        obj.insert(key.to_string(), Value::String(value.to_string()));
+                    }
                 }
             }
         }
     }
 
     println!("2");
-    let e = &entities[0];
-    let id = e.get("id").unwrap().to_string();
-    let b = BulkOperation::index(e).id(&id).routing(&id).into();
-    let mut body: Vec<BulkOperation<_>> = Vec::new();
-    body.push(b);
 
 
-    //let body: Vec<BulkOperation<_>> = entities
-    //    .iter()
-    //    .map(|e| {
-    //        let id = e.get("id").unwrap().to_string();
-    //        BulkOperation::index(e).id(&id).routing(&id).into()
-    //    })
-    //    .collect();
+    let body: Vec<BulkOperation<_>> = entities
+        .iter()
+        .map(|e| {
+            let id = e.get("id").unwrap().to_string();
+            BulkOperation::index(e).id(&id).routing(&id).into()
+        })
+        .collect();
 
     println!("3");
     let response = client
@@ -126,6 +123,7 @@ async fn index_entities(client: &Elasticsearch, entities: &mut Vec<Value>) -> Re
         .await?;
 
     println!("4");
+    println!("{:?}", response);
     let json: Value = response.json().await?;
 
     println!("5");

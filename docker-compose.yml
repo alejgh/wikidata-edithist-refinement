@@ -1,13 +1,29 @@
 version: "3.9"
 services:
-  rust:
-    build: scripts/edit_history/Dockerfile
+  fetch_edit_history:
+    build: scripts/edit_history
     volumes:
       - .:/code
     environment:
-      - ES_URL=elasticsearch
+      - ES_URL=http://elasticsearch:9200
       - ES_USERNAME=elastic
       - ES_PASSWORD=$ELASTIC_PASSWORD
+  jupyter_notebook:
+      build: notebooks
+      user: root
+      working_dir: /home/alejgh/work
+      volumes:
+        - ./notebooks:/home/alejgh/work
+        - ${LOCAL_SSL_CERTS}:/etc/ssl/notebook
+      environment:
+        - NB_USER="alejgh"
+        - CHOWN_HOME=yes
+        - RESTARTABLE=yes
+      ports:
+        - 8888:8888
+      command: "start-notebook.sh \
+        --NotebookApp.password=${NOTEBOOK_TOKEN} \
+        --NotebookApp.certfile=/etc/ssl/notebook/jupyter.pem"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_VERSION
     environment:
@@ -15,6 +31,7 @@ services:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
       - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - http.max_content_length=500mb
       - xpack.security.enabled=$ELASTIC_SECURITY
     ulimits:
       memlock:
@@ -27,4 +44,3 @@ services:
 
 volumes:
   esdata:
-    driver: local

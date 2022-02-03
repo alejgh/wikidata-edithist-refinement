@@ -1,7 +1,7 @@
-FROM rust:1.31
+FROM rust:1.58
 
 WORKDIR /code
 
-RUN apt install p7zip-full p7zip-rar curl wget
+RUN apt update && apt install -y p7zip-full curl wget
 
-CMD ["sh" "run_all.sh"]
+ENTRYPOINT ["scripts/edit_history/run_all.sh"]

@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "3.0.13", features = ["derive"] }
-elasticsearch = "7.14.0-alpha.1"
 http = "0.2.6"
 indicatif = "*"
+mongodb = "2.1.0"
 serde_json = "1.0"
 tokio = { version = "*", features = ["full"] }
 url = "2.2.2"

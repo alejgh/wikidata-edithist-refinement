@@ -12,6 +12,6 @@ cd wd_diff_calculator
 cargo build --release
 #cargo run --release -- --input-dir ../../../data/edit_history/raw_dumps --output-dir ../../../data/edit_history/diffs --bulk-size 100 --entities-file ../../../data/edit_history/entities_ids.txt
 
-cd ../elasticsearch_indexer
+cd ../diff_indexer
 cargo build --release
-#cargo run --release -- --input-dir ../../../data/edit_history/diffs --bulk-size 25
+#cargo run --release -- --input-dir ../../../data/edit_history/diffs --bulk-size 15

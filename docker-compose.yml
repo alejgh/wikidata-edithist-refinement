@@ -5,9 +5,10 @@ services:
     volumes:
       - .:/code
     environment:
-      - ES_URL=http://elasticsearch:9200
-      - ES_USERNAME=elastic
-      - ES_PASSWORD=$ELASTIC_PASSWORD
+      - MONGO_URL=http://mongo:27017
+      - MONGO_USERNAME=$MONGO_DB_USER
+      - MONGO_PASSWORD=$MONGO_DB_PASS
+
   jupyter_notebook:
       build: notebooks
       user: root
@@ -16,31 +17,41 @@ services:
         - ./notebooks:/home/alejgh/work
         - ${LOCAL_SSL_CERTS}:/etc/ssl/notebook
       environment:
-        - NB_USER="alejgh"
+        - NB_USER=alejgh
         - CHOWN_HOME=yes
         - RESTARTABLE=yes
       ports:
         - 8888:8888
       command: "start-notebook.sh \
-        --NotebookApp.password=${NOTEBOOK_TOKEN} \
-        --NotebookApp.certfile=/etc/ssl/notebook/jupyter.pem"
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_VERSION
+        --ServerApp.password=${NOTEBOOK_TOKEN} \
+        --ServerApp.certfile=/etc/ssl/notebook/jupyter.pem"
+
+  mongo:
+    image: mongo
+    restart: always
     environment:
-      - bootstrap.memory_lock=true
-      - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
-      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
-      - http.max_content_length=500mb
-      - xpack.security.enabled=$ELASTIC_SECURITY
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - MONGO_INITDB_ROOT_USERNAME=$MONGO_ROOT_USER
+      - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ROOT_PASS
+      - MONGO_INITDB_USERNAME=$MONGO_DB_USER
+      - MONGO_INITDB_PASSWORD=$MONGO_DB_PASS
+      - MONGO_INITDB_DATABASE=wd_diff
     ports:
-      - 9200:9200
+      - 27017:27017
+    volumes:
+      - mongodata:/data/db
+      - ./config/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=$MONGO_EXPRESS_USER
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=$MONGO_EXPRESS_PASS
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/
+    depends_on:
+      - "mongo"
 
 volumes:
-  esdata:
+  mongodata:

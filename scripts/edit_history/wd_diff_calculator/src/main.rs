@@ -11,7 +11,7 @@ use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::process::{Command, Stdio};
 
 use clap::Parser;
-use indicatif::{ParallelProgressIterator, ProgressBar};
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use json_patch::{diff};
 use quick_xml::Reader;
 use quick_xml::events::Event;
@@ -163,7 +163,7 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
                         }
 
 
-                        current_item.entity_json = serde_json::to_string(&previous_json).unwrap();
+                        current_item.entity_json = previous_json.clone().unwrap();
 
                         // add entity to list and see if we can bulk index in ES
                         item_bulk.push(current_item.clone());
@@ -209,8 +209,13 @@ pub fn main() {
     // Fail if any dir entry is error
     let entries = file_paths.collect::<Result<Vec<DirEntry>, _>>().expect("Error getting files from input folder");
     
+    // set up progress bar
+    let style = ProgressStyle::default_bar()
+        .template("[{elapsed_precise}] {bar:40.cyan/blue} {msg} {pos:>7}/{len:7} ")
+        .progress_chars("##-");
     let pb = ProgressBar::new(entries.len() as u64)
-        .with_message("Files processed");
+        .with_message("Files processed:");
+    pb.set_style(style.clone());
 
     entries.par_iter().progress_with(pb).for_each(|dir_entry| {
         let path = dir_entry.path();

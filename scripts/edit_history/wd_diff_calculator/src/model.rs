@@ -1,5 +1,6 @@
 use json_patch::Patch;
 use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Debug, Default, Clone, Serialize)]
 pub struct WikidataRevision {
@@ -15,6 +16,6 @@ pub struct WikidataRevision {
 pub struct WikidataItem {
     pub id: u64,
     pub entity_id: String,
-    pub entity_json: String,
+    pub entity_json: Value,
     pub revisions: Vec::<WikidataRevision>
 }

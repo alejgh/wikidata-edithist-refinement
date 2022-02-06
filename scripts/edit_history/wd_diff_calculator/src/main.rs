@@ -17,6 +17,7 @@ use quick_xml::Reader;
 use quick_xml::events::Event;
 use quick_xml::events::BytesStart;
 use rayon::prelude::*;
+use rayon::ThreadPoolBuilder;
 use serde_json::{Value};
 
 
@@ -198,6 +199,7 @@ fn process_file(file_name: & impl AsRef<Path>, output_dir: & impl AsRef<Path>,
 
 pub fn main() {
     let args = Args::parse();
+    ThreadPoolBuilder::new().num_threads(5).build_global().unwrap();
 
     let entities_to_fetch = match args.entities_file {
         Some(f) => Some(get_entities_to_fetch(f)),
@@ -207,8 +209,15 @@ pub fn main() {
     let file_paths = read_dir(args.input_dir).unwrap();
 
     // Fail if any dir entry is error
-    let entries = file_paths.collect::<Result<Vec<DirEntry>, _>>().expect("Error getting files from input folder");
-    
+   let entries = file_paths
+    .filter(|e| {
+        return match e.as_ref().unwrap().path().extension() {
+            Some(ext) => ext == "7z",
+            None => false
+        };
+    })   
+    .collect::<Result<Vec<DirEntry>, _>>().expect("Error getting files from input folder");
+
     // set up progress bar
     let style = ProgressStyle::default_bar()
         .template("[{elapsed_precise}] {bar:40.cyan/blue} {msg} {pos:>7}/{len:7} ")
@@ -219,15 +228,6 @@ pub fn main() {
 
     entries.par_iter().progress_with(pb).for_each(|dir_entry| {
         let path = dir_entry.path();
-        match path.extension() {
-            Some(ext) => {
-                if ext != "7z" {
-                    return;
-                }
-            },
-            None => return
-        }
-        
         println!("Extracting file {:?}...", path);
         let new_filename = path.to_str().unwrap().replace(".7z", ".xml");
         let fd = File::create(&new_filename).unwrap().into_raw_fd();
@@ -250,6 +250,5 @@ pub fn main() {
 
         let error_msg = format!("File {} could not be deleted!", new_filename);
         remove_file(new_filename).expect(&error_msg);
-
     });
 }

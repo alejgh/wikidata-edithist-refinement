@@ -209,14 +209,17 @@ pub fn main() {
     let file_paths = read_dir(args.input_dir).unwrap();
 
     // Fail if any dir entry is error
-   let entries = file_paths
+   let mut entries = file_paths
     .filter(|e| {
         return match e.as_ref().unwrap().path().extension() {
             Some(ext) => ext == "7z",
             None => false
         };
-    })   
+    })
     .collect::<Result<Vec<DirEntry>, _>>().expect("Error getting files from input folder");
+    entries.sort_by_key(|dir| dir.path());
+
+    println!("{:?}", entries);
 
     // set up progress bar
     let style = ProgressStyle::default_bar()

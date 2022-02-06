@@ -1,11 +1,11 @@
-version: "3.9"
+version: "3.3"
 services:
   fetch_edit_history:
     build: scripts/edit_history
     volumes:
       - .:/code
     environment:
-      - MONGO_URL=http://mongo:27017
+      - MONGO_URL=mongo:27017
       - MONGO_USERNAME=$MONGO_DB_USER
       - MONGO_PASSWORD=$MONGO_DB_PASS
 

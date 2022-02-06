@@ -8,7 +8,7 @@ use mongodb::error::Error;
 use serde_json::Value;
 
 
-/// Indexes wikidata diff files into an ElasticSearch instance
+/// Indexes wikidata diff files into a MongoDB instance
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {

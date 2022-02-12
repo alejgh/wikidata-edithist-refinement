@@ -15,11 +15,15 @@ services:
       working_dir: /home/alejgh/work
       volumes:
         - ./notebooks:/home/alejgh/work
+        - ./data:/home/alejgh/data
         - ${LOCAL_SSL_CERTS}:/etc/ssl/notebook
       environment:
         - NB_USER=alejgh
         - CHOWN_HOME=yes
         - RESTARTABLE=yes
+        - MONGO_URL=mongo:27017
+        - MONGO_USERNAME=$MONGO_DB_USER
+        - MONGO_PASSWORD=$MONGO_DB_PASS
       ports:
         - 8888:8888
       command: "start-notebook.sh \

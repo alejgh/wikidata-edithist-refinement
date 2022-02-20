@@ -3,7 +3,7 @@ use std::io::BufReader;
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use mongodb::{bson::doc, options::ClientOptions, Client};
+use mongodb::{bson::doc, options::ClientOptions, Client, Collection};
 use mongodb::error::Error;
 use serde_json::Value;
 
@@ -81,6 +81,7 @@ async fn main() -> mongodb::error::Result<()> {
     
     for entry in entries {
         let path = entry.path();
+	println!("{:?}", path);
 
         // read file contents into entities vec
         let file = File::open(&path).expect(&format!("Could not open file: {:?}", &path));
@@ -91,16 +92,67 @@ async fn main() -> mongodb::error::Result<()> {
 
         if i > args.bulk_size {
             i = 0;
-            collection.insert_many(&entities, None).await?;
+            let mut success = false;
+            while !success {
+                let res = insert_many(&collection, &entities).await;
+                if res.is_some() {
+                    entities.remove(res.unwrap());
+                } else {
+                    success = true;
+                }
+            }
+
             entities.clear();
             pb.inc(1);
         }
     }
 
     if entities.len() > 0 {
-        collection.insert_many(&entities, None).await?;
+        let mut success = false;
+        while !success {
+            let res = insert_many(&collection, &entities).await;
+            if res.is_some() {
+                entities.remove(res.unwrap());
+            } else {
+                success = true;
+            }
+        }
     }
 
     pb.inc(1);
     Ok(())
+}
+
+async fn insert_many(collection: &Collection::<Value>, entities: & Vec::<Value>) -> Option<usize> {
+    let result = collection.insert_many(entities, None).await;
+    if result.is_err() {
+        println!("Error inserting documents");
+        return Some(get_idx_largest_entity(&entities));
+    } else {
+        return None;
+    }
+}
+
+fn get_idx_largest_entity(vec: & Vec::<Value>) -> usize {
+    let mut max_size = 0;
+    let mut max_v: Option<&Value> = None;
+    let mut idx = 0;
+    let mut i = 0;
+    for v in vec {
+        if v.to_string().chars().count() * 8 > max_size {
+            max_size = v.to_string().chars().count() * 8;
+            max_v = Some(v);
+            idx = i;
+        }
+
+        i += 1;
+    }
+
+    println!("SIZE: {}", max_size);
+    match max_v {
+        Some(v) => println!("El causante: {:?}", v.get("entity_id")),
+        None => println!("NO")
+    }
+
+    return idx;
 }

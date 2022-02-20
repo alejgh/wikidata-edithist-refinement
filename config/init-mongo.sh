@@ -13,7 +13,7 @@ mongo -- "$MONGO_INITDB_DATABASE" <<EOF
         pwd: passwd,
         roles: [
             {
-                role: "readWrite",
+                role: "dbAdmin",
                 db: '$MONGO_INITDB_DATABASE'
             }
         ]

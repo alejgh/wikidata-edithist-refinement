@@ -14,4 +14,4 @@ cargo build --release
 
 cd ../diff_indexer
 cargo build --release
-#cargo run --release -- --input-dir ../../../data/edit_history/diffs --bulk-size 5
+#cargo run --release -- --input-dir ../../../data/edit_history/diffs --bulk-size 2

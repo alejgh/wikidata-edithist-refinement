@@ -8,6 +8,7 @@ services:
       - MONGO_URL=mongo:27017
       - MONGO_USERNAME=$MONGO_DB_USER
       - MONGO_PASSWORD=$MONGO_DB_PASS
+    network_mode: "host"  
 
   jupyter_notebook:
       build: notebooks
@@ -29,6 +30,7 @@ services:
       command: "start-notebook.sh \
         --ServerApp.password=${NOTEBOOK_TOKEN} \
         --ServerApp.certfile=/etc/ssl/notebook/jupyter.pem"
+      network_mode: "host"
 
   mongo:
     image: mongo
@@ -42,6 +44,7 @@ services:
     volumes:
       - mongodata:/data/db
       - ./config/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+    network_mode: "host"
 
   mongo-express:
     image: mongo-express
@@ -52,6 +55,7 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/
     depends_on:
       - "mongo"
+    network_mode: "host"
 
 volumes:
   mongodata:

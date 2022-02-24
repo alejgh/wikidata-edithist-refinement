@@ -78,10 +78,11 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut entities = Vec::<Value>::with_capacity(args.bulk_size);
     let mut i = 0;
+    let mut num_instances = 0;
     
     for entry in entries {
         let path = entry.path();
-	println!("{:?}", path);
+	    println!("{:?}", path);
 
         // read file contents into entities vec
         let file = File::open(&path).expect(&format!("Could not open file: {:?}", &path));
@@ -102,12 +103,14 @@ async fn main() -> mongodb::error::Result<()> {
                 }
             }
 
+            num_instances += entities.len();
             entities.clear();
             pb.inc(1);
         }
     }
 
     if entities.len() > 0 {
+        num_instances += entities.len();
         let mut success = false;
         while !success {
             let res = insert_many(&collection, &entities).await;
@@ -119,6 +122,7 @@ async fn main() -> mongodb::error::Result<()> {
         }
     }
 
+    println!("Indexed {:?} entities", num_instances);
     pb.inc(1);
     Ok(())
 }

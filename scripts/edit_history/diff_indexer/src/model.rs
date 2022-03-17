@@ -29,7 +29,7 @@ pub struct WikidataItem {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct MongoRevision {
     pub id: u64,
-    pub class_id: String,
+    pub class_ids: Vec::<String>,
     pub entity_id: String,
     pub parent_id: u64,
     pub timestamp: String,
@@ -41,7 +41,7 @@ pub struct MongoRevision {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct MongoEntity {
     pub id: u64,
-    pub class_id: String,
+    pub class_ids: Vec::<String>,
     pub entity_id: String,
     pub entity_json: Value
 }

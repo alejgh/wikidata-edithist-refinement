@@ -66,7 +66,6 @@ async fn main() -> mongodb::error::Result<()> {
     let db = client.database(&db_name);
     let entities_collection = db.collection::<MongoEntity>("wd_entities");
     let revisions_collection = db.collection::<MongoRevision>("wd_revisions");
-    //let ops_collection = db.collection::<MongoOp>("wd_ops");
 
     let entities_classes = get_entities_classes_dict(args.entities_classes_file);
 
@@ -128,20 +127,20 @@ async fn main() -> mongodb::error::Result<()> {
 async fn insert_many(entities_collection: &Collection::<MongoEntity>,
                      revisions_collection: &Collection<MongoRevision>,
                      entities: & Vec::<WikidataItem>,
-                     entities_classes: &HashMap<String, String>) {
+                     entities_classes: &HashMap<String, Vec::<String>>) {
     let mut mongo_entities = Vec::<MongoEntity>::new();
     let mut mongo_revisions = Vec::<MongoRevision>::new();
     for entity in entities {
-        let class_id: String = match entities_classes.get(&entity.entity_id) {
-            Some(q_id) => q_id.to_string(),
+        let class_ids: Vec::<String> = match entities_classes.get(&entity.entity_id) {
+            Some(class_ids) => class_ids.clone(),
             None => {
-                println!("No class for entity {}", entity.entity_id.clone());
-                String::new()
+                println!("No classes for entity {}", entity.entity_id.clone());
+                Vec::<String>::new()
             }
         };
 
         let m_entity = MongoEntity {id: entity.id, entity_id: entity.entity_id.clone(),
-            entity_json: entity.entity_json.clone(), class_id: class_id.clone()};
+            entity_json: entity.entity_json.clone(), class_ids: class_ids.clone()};
         mongo_entities.push(m_entity);
 
         for rev in entity.revisions.clone() {
@@ -160,7 +159,7 @@ async fn insert_many(entities_collection: &Collection::<MongoEntity>,
 
             let m_rev = MongoRevision {id: rev.id, entity_id: entity.entity_id.clone(),
                 parent_id: rev.parent_id, timestamp: rev.timestamp,
-                username: rev.username, comment: rev.comment, class_id: class_id.clone(),
+                username: rev.username, comment: rev.comment, class_ids: class_ids.clone(),
                 entity_diff: m_ops};
             mongo_revisions.push(m_rev);
         }
@@ -177,19 +176,24 @@ async fn insert_many(entities_collection: &Collection::<MongoEntity>,
     }
 }
 
-fn get_entities_classes_dict(entities_classes_file: String) -> HashMap<String, String> {
-    let mut entitites_classes = HashMap::new();
+fn get_entities_classes_dict(entities_classes_file: String) -> HashMap<String, Vec::<String>> {
+    let mut entities_classes = HashMap::new();
     let file = File::open(&entities_classes_file).expect(&format!("Could not open file: {:?}", &entities_classes_file));
     let mut rdr = csv::Reader::from_reader(BufReader::new(file));
     for result in rdr.deserialize() {
         let record: CSVRecord = result.expect("Error parsing CSV record");
-        entitites_classes.insert(
-            record.entity_id,
-            record.class_id
-        );
+
+        if !entities_classes.contains_key(&record.entity_id) {
+            entities_classes.insert(
+                record.entity_id.clone(),
+                Vec::<String>::new()
+            );
+        }
+        
+        entities_classes.get_mut(&record.entity_id).unwrap().push(record.class_id.clone());
     }
 
-    return entitites_classes;
+    return entities_classes;
 }
 
 fn get_idx_largest_entity(vec: & Vec::<Value>) -> usize {

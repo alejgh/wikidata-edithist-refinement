@@ -130,6 +130,9 @@ dmypy.json
 
 # data files
 data/pagerank/*.rank
+data/edit_history/raw_dumps/*
+data/edit_history/diffs/*
+data/edit_history/entities_ids.txt
 
 # classrank
 notebooks/classrank

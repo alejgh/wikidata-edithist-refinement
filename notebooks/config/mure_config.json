@@ -1,0 +1,39 @@
+{
+    "optuna": {
+        "timeout": 21600
+    },
+    "pipeline": {
+        "model": "MuRE",
+        "model_kwargs": {
+            "random_seed": 42
+        },
+        "model_kwargs_ranges": {
+            "embedding_dim": {
+                "high": 400,
+                "low": 50,
+                "type": "int",
+                "step": 25
+            }
+        },
+        "training_loop": "slcwa",
+        "training_kwargs_ranges": {
+            "num_epochs": {
+                "type": "int",
+                "low": 5,
+                "high": 50
+            },
+            "batch_size": {
+                "type": "int",
+                "low": 5,
+                "high": 9,
+                "scale": "power_two"
+            }
+        },
+        "stopper": "early",
+        "stopper_kwargs": {
+            "frequency": 5,
+            "patience": 1,
+            "relative_delta": 0.01
+        }
+    }
+}

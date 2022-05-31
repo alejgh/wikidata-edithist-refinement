@@ -8,7 +8,7 @@ RUN python3 -m pip install -r requirements.txt
 
 # install Rust dependencies
 USER root
-RUN apt-get -qq update && apt-get -qq install -y curl build-essential cmake
+RUN apt-get -qq update && apt-get -qq install -y curl build-essential cmake git
 RUN usermod --home "/home/alejgh" --login "alejgh" jovyan
 RUN mkdir /home/alejgh 
 RUN cp -a /home/jovyan/. /home/alejgh

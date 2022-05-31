@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+  jupyter_notebook:
+      build: notebooks
+      user: root
+      working_dir: /home/alejgh/work
+      volumes:
+        - ./notebooks:/home/alejgh/work
+        - ./data:/home/alejgh/data
+        - ${LOCAL_SSL_CERTS}:/etc/ssl/notebook
+      environment:
+        - NB_USER=alejgh
+        - CHOWN_HOME=yes
+        - RESTARTABLE=yes
+        - MONGO_URL=20.97.56.241:27017
+        - MONGO_USERNAME=$MONGO_DB_USER
+        - MONGO_PASSWORD=$MONGO_DB_PASS
+      ports:
+        - 8888:8888
+      command: "start-notebook.sh \
+        --ServerApp.password=${NOTEBOOK_TOKEN} \
+        --ServerApp.certfile=/etc/ssl/notebook/jupyter.pem"
+      network_mode: "host"
+
+volumes:
+  mongodata:

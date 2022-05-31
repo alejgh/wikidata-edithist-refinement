@@ -5,10 +5,10 @@ services:
     volumes:
       - .:/code
     environment:
-      - MONGO_URL=mongo:27017
+      - MONGO_URL=localhost:27017
       - MONGO_USERNAME=$MONGO_DB_USER
       - MONGO_PASSWORD=$MONGO_DB_PASS
-    network_mode: "host"  
+    network_mode: "host"
 
   jupyter_notebook:
       build: notebooks
@@ -35,6 +35,9 @@ services:
   mongo:
     image: mongo
     restart: always
+    command:
+        - '-f'
+        - '/etc/mongod.conf'
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_ROOT_USER
       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_ROOT_PASS
@@ -43,6 +46,7 @@ services:
       - MONGO_INITDB_DATABASE=wd_diff
     volumes:
       - mongodata:/data/db
+      - ./config/mongod.conf:/etc/mongod.conf
       - ./config/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
     network_mode: "host"
 
@@ -52,7 +56,11 @@ services:
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=$MONGO_EXPRESS_USER
       - ME_CONFIG_MONGODB_ADMINPASSWORD=$MONGO_EXPRESS_PASS
-      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@mongo:27017/
+      - ME_CONFIG_MONGODB_BASICAUTH_USERNAME=$MONGO_EXPRESS_USER
+      - ME_CONFIG_MONGODB_BASICAUTH_PASSWORD=$MONGO_EXPRESS_PASS
+      - ME_CONFIG_MONGODB_URL=mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@localhost:27017/
+    ports:
+      - 8081:8081
     depends_on:
       - "mongo"
     network_mode: "host"

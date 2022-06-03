@@ -1,0 +1,1 @@
+The pagerank dump should be downloaded from [here](https://danker.s3.amazonaws.com/2020-11-14.allwiki.links.rank.bz2) and extracted into this folder. This folder should contain this README.md file and a *2020-11-14.allwiki.links.rank* file after this process.

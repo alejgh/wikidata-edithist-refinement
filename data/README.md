@@ -1,0 +1,4 @@
+# Data
+This directory contains the input data used by the edit history fetching scripts and the notebooks. It has the following contents:
+- [**edit_history**](./edit_history/): This folder holds the list of entities for which the entire revision history will be fetched ([*entities_ids.txt*](./edit_history/entities_ids.txt)). It also contains a folder where the raw Wikidata dumps will be temporarily stored (*raw_dumps*) and another folder where the JSON diffs will be stored before indexing them to Wikidata (*diffs*).
+- [**pagerank**](./pagerank/): This folder contains the precomputed pagerank values for Wikidata entities. Since the pagerank dump has a big size to be stored in version control systems, there is a [README](./pagerank/README.md) file inside the folder with the needed instructions to download and extract the file.

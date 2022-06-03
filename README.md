@@ -42,20 +42,20 @@ The main steps to run the code using this way are:
     ![image info](./images/jupyter_lab_access.png)
 
     If we now go to the http://127.0.0.1:8888/lab?token=xxx address (replace with your token) we will access the Jupyter Notebook server.
-5. Now everything is set up to start reproducing the experiments.
-6. When we have finished running the notebooks we can use the command ```docker-compose down``` to stop the containers.
+6. Now everything is set up to start reproducing the experiments. When we have finished running the notebooks we can use the command ```docker-compose down``` to stop the containers.
 
 You can visit the [notebooks](./notebooks/) folder for more information about the contents of each notebook.
 
 #### Option B: Fetching edit data from scratch
 In this second option, instead of importing the edit history dataset into MongoDB we will fetch it directly from Wikidata and compute the diffs of each revision.
 
-> This option is not recommended, since fetching the edit history information from Wikidata may take a long time (~15 days). 
+> This option is not recommended, since fetching the edit history information from Wikidata may take a long time (10-15 days). 
 
-The main steps to run the code are:
-1. a
-2. b
-3. During this time, you can use the ```docker-compose logs``` command to see the current status of the revision
+The main steps needed to run the code are:
+1. Modify the [download_dumps.sh](./scripts/download_dumps.sh) file to select the date of the Wikidata backups being downloaded. The current date being used is 2021-11-01. You can see current database dump dates through the [following link](https://dumps.wikimedia.org/wikidatawiki/).
+2. Run the *docker-compose-fetching.yml* file with the following command: ```docker-compose up -f docker-compose-fetching.yml -d```.
+3. During this time, you can use the ```docker-compose logs --tail 50 fetch_edit_history``` command to see the current status of the revision history fetching process.
+4. When the process has finished, you can now access the jupyter notebook and stop the containers following steps 5 and 6 explained previously for option A.
 
 ### Manually running the code
 It is also possible to manually install all the required dependencies to run the code. We have used Python 3.8 in the experiments, and all the required libraries are available in this [requirements.txt](./notebooks/requirements.txt) file. Additionally, we have used Rust 1.5.8 for the indexing code and version 4.4 of MongoDB.

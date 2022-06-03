@@ -138,7 +138,15 @@ data/edit_history/entities_ids.txt
 notebooks/classrank
 
 # output
-notebooks/output
+notebooks/output/1_data_fetching/*
+!notebooks/output/1_data_fetching/.folder
+notebooks/output/2_data_exploration/*
+!notebooks/output/2_data_exploration/charts
+!notebooks/output/2_data_exploration/edit_states_graph.html
+notebooks/output/3_edit_history_systems/*
+!notebooks/output/3_edit_history_systems/hpo
+notebooks/output/4_model_evaluation/*
+!notebooks/output/4_model_evaluation/*.csv
 
 # MAC OS
 .DS_Store

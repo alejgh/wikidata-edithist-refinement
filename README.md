@@ -1,4 +1,4 @@
-# Type prediction in Wikidata using its edit history
+# Leveraging Wikidata's edit history in knowledge graph refinement tasks
 This code is part of the paper "Leveraging Wikidata's edit history in knowledge graph refinement tasks". The main purpose of this paper is using edit history information from Wikidata to perform type prediction tasks. There are several elements in this codebase used to:
 - Fetch edit history information from Wikidata and index it into a MongoDB database.
 - Analyze the edit history information from the database.

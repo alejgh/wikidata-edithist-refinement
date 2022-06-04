@@ -63,7 +63,7 @@ It is also possible to manually install all the required dependencies to run the
 There is also the option to fetch the revision story from scratch by running the provided scripts or instead importing the dataset directly into MongoDB. The steps needed to perform those options are analogous to the ones explained in the Docker section.
 
 ## Using the type prediction models
-The models trained during the paper are available through the [following link](). Each unsupervised model consists of a *model.pkl* file which can be imported using torch as follows:
+The models trained during the paper are available through the [following link](https://unioviedo-my.sharepoint.com/:f:/g/personal/uo251513_uniovi_es/ErOpaCT1zCNOpIwl7UDbmr0B7OBcQR5J-YVKhTfLP71BJw?e=BvfR7e). Each unsupervised model consists of a *model.pkl* file which can be imported using torch as follows:
 ```python
 with open(MODEL_FILE_PATH, 'rb') as f:
     model = torch.load(f, map_location=torch.device('cpu'))

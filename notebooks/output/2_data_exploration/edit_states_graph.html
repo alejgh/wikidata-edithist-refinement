@@ -1,0 +1,80 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vis-network@latest/styles/vis-network.css" type="text/css" />
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/vis-network@latest/dist/vis-network.min.js"> </script>
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 750px;
+            height: 750px;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"borderWidth": 1.5, "color": "#60a5fa", "id": 0, "label": "Add statement group", "shape": "dot", "size": 65.0}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 2, "label": "Remove statement group", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 3, "label": "Add statement", "shape": "dot", "size": 19.724924010633178}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 5, "label": "Remove statement", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 6, "label": "Add statement value", "shape": "dot", "size": 34.32966262975464}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 7, "label": "Replace statement value", "shape": "dot", "size": 25.389272325293145}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 8, "label": "Remove statement value", "shape": "dot", "size": 23.099441472632652}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 10, "label": "Modify statement rank", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 12, "label": "Add reference", "shape": "dot", "size": 49.64484282247066}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 14, "label": "Remove reference", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 15, "label": "Add reference snak", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 17, "label": "Remove reference snak", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 18, "label": "Modify reference order", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 19, "label": "Add reference value", "shape": "dot", "size": 32.9009512031732}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 20, "label": "Replace reference value", "shape": "dot", "size": 24.915252053589924}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 21, "label": "Remove reference value", "shape": "dot", "size": 18.51295442016315}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 22, "label": "Add qualifier", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 24, "label": "Remove qualifier", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 25, "label": "Add qualifier snak", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 27, "label": "Remove qualifier snak", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 28, "label": "Modify qualifier order", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 29, "label": "Add qualifier value", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#60a5fa", "id": 30, "label": "Replace qualifier value", "shape": "dot", "size": 15}, {"borderWidth": 1.5, "color": "#8b5cf6", "id": 31, "label": "Create entity", "shape": "dot", "size": 16.296121797676346}]);
+        edges = new vis.DataSet([{"arrows": "to", "from": 0, "title": 0.9839077195466593, "to": 0, "width": 3.9356308781866374}, {"arrows": "to", "from": 0, "title": 1.0, "to": 12, "width": 4.0}, {"arrows": "to", "from": 2, "title": 0.4935293814422113, "to": 0, "width": 1.9741175257688452}, {"arrows": "to", "from": 2, "title": 0.30244072391134913, "to": 2, "width": 1.2097628956453965}, {"arrows": "to", "from": 3, "title": 0.41366085995186813, "to": 0, "width": 1.6546434398074725}, {"arrows": "to", "from": 3, "title": 0.44074511898956054, "to": 3, "width": 1.7629804759582421}, {"arrows": "to", "from": 3, "title": 0.45251351639510246, "to": 12, "width": 1.8100540655804098}, {"arrows": "to", "from": 3, "title": 0.36585907726104655, "to": 22, "width": 1.4634363090441862}, {"arrows": "to", "from": 5, "title": 0.2459195892567602, "to": 0, "width": 0.9836783570270408}, {"arrows": "to", "from": 5, "title": 0.10353928418426862, "to": 3, "width": 0.4141571367370745}, {"arrows": "to", "from": 5, "title": 0.10509204098495366, "to": 7, "width": 0.42036816393981463}, {"arrows": "to", "from": 6, "title": 0.6943127217185112, "to": 6, "width": 2.777250886874045}, {"arrows": "to", "from": 6, "title": 0.7631756159110152, "to": 19, "width": 3.052702463644061}, {"arrows": "to", "from": 7, "title": 0.4320788745296277, "to": 0, "width": 1.7283154981185107}, {"arrows": "to", "from": 7, "title": 0.6357787640411182, "to": 7, "width": 2.543115056164473}, {"arrows": "to", "from": 8, "title": 0.34855509793569545, "to": 0, "width": 1.3942203917427818}, {"arrows": "to", "from": 8, "title": 0.5684150681502204, "to": 8, "width": 2.2736602726008814}, {"arrows": "to", "from": 8, "title": 0.595466087178282, "to": 21, "width": 2.381864348713128}, {"arrows": "to", "from": 10, "title": 0.056314478510997676, "to": 0, "width": 0.25}, {"arrows": "to", "from": 10, "title": 0.051668958950827, "to": 3, "width": 0.25}, {"arrows": "to", "from": 10, "title": 0.060338605527647096, "to": 14, "width": 0.25}, {"arrows": "to", "from": 10, "title": 0.04370021591717816, "to": 22, "width": 0.25}, {"arrows": "to", "from": 12, "title": 0.9429146922573381, "to": 0, "width": 3.7716587690293526}, {"arrows": "to", "from": 12, "title": 0.6054517897736089, "to": 12, "width": 2.4218071590944357}, {"arrows": "to", "from": 14, "title": 0.14842584460592945, "to": 0, "width": 0.5937033784237178}, {"arrows": "to", "from": 14, "title": 0.20263398660381915, "to": 12, "width": 0.8105359464152766}, {"arrows": "to", "from": 14, "title": 0.13853138443148402, "to": 14, "width": 0.5541255377259361}, {"arrows": "to", "from": 15, "title": 0.4886749192816165, "to": 15, "width": 1.954699677126466}, {"arrows": "to", "from": 15, "title": 0.4787090898004782, "to": 17, "width": 1.9148363592019129}, {"arrows": "to", "from": 17, "title": 0.48790909482866485, "to": 18, "width": 1.9516363793146594}, {"arrows": "to", "from": 18, "title": 0.20778130827675056, "to": 0, "width": 0.8311252331070023}, {"arrows": "to", "from": 18, "title": 0.11503900149920966, "to": 15, "width": 0.46015600599683865}, {"arrows": "to", "from": 18, "title": 0.16748286706104953, "to": 18, "width": 0.6699314682441981}, {"arrows": "to", "from": 19, "title": 0.44984671172948865, "to": 0, "width": 1.7993868469179546}, {"arrows": "to", "from": 19, "title": 0.7142816465193195, "to": 6, "width": 2.857126586077278}, {"arrows": "to", "from": 19, "title": 0.6908999415513568, "to": 19, "width": 2.7635997662054272}, {"arrows": "to", "from": 20, "title": 0.42533159031564927, "to": 0, "width": 1.701326361262597}, {"arrows": "to", "from": 20, "title": 0.6898354186529865, "to": 20, "width": 2.759341674611946}, {"arrows": "to", "from": 21, "title": 0.4918165479140459, "to": 8, "width": 1.9672661916561835}, {"arrows": "to", "from": 21, "title": 0.37559016957858243, "to": 20, "width": 1.5023606783143297}, {"arrows": "to", "from": 21, "title": 0.4173713523565683, "to": 21, "width": 1.6694854094262732}, {"arrows": "to", "from": 25, "title": 0.1472642235394721, "to": 25, "width": 0.5890568941578884}, {"arrows": "to", "from": 25, "title": 0.0870275792562847, "to": 27, "width": 0.3481103170251388}, {"arrows": "to", "from": 27, "title": 0.03783442849889513, "to": 27, "width": 0.25}, {"arrows": "to", "from": 27, "title": 0.1057344023492132, "to": 28, "width": 0.4229376093968528}, {"arrows": "to", "from": 28, "title": 0.02746730492361008, "to": 0, "width": 0.25}, {"arrows": "to", "from": 28, "title": 0.03138812028494125, "to": 25, "width": 0.25}, {"arrows": "to", "from": 28, "title": 0.08322143638853403, "to": 28, "width": 0.33288574555413614}, {"arrows": "to", "from": 29, "title": 0.04995285091939602, "to": 6, "width": 0.25}, {"arrows": "to", "from": 29, "title": 0.10839566454659039, "to": 19, "width": 0.43358265818636155}, {"arrows": "to", "from": 29, "title": 0.05112751135450789, "to": 29, "width": 0.25}, {"arrows": "to", "from": 30, "title": 0.16533813321143745, "to": 7, "width": 0.6613525328457498}, {"arrows": "to", "from": 30, "title": 0.28072367822156963, "to": 30, "width": 1.1228947128862785}, {"arrows": "to", "from": 31, "title": 0.6562547618070956, "to": 0, "width": 2.6250190472283825}, {"arrows": "to", "from": 0, "title": 0.41687817546119355, "to": 2, "width": 1.6675127018447742}, {"arrows": "to", "from": 12, "title": 0.3876574063840415, "to": 2, "width": 1.550629625536166}, {"arrows": "to", "from": 0, "title": 0.4667210271771538, "to": 3, "width": 1.8668841087086152}, {"arrows": "to", "from": 12, "title": 0.5044990020445098, "to": 3, "width": 2.0179960081780393}, {"arrows": "to", "from": 3, "title": 0.1256003974248155, "to": 5, "width": 0.502401589699262}, {"arrows": "to", "from": 7, "title": 0.2328100105487365, "to": 5, "width": 0.931240042194946}, {"arrows": "to", "from": 12, "title": 0.11833839927762609, "to": 5, "width": 0.47335359711050434}, {"arrows": "to", "from": 14, "title": 0.1032769614400574, "to": 5, "width": 0.4131078457602296}, {"arrows": "to", "from": 0, "title": 0.45965366505113014, "to": 7, "width": 1.8386146602045206}, {"arrows": "to", "from": 0, "title": 0.40597130859683617, "to": 8, "width": 1.6238852343873447}, {"arrows": "to", "from": 0, "title": 0.05769570048429307, "to": 10, "width": 0.25}, {"arrows": "to", "from": 3, "title": 0.06878813187632615, "to": 10, "width": 0.2751525275053046}, {"arrows": "to", "from": 12, "title": 0.08970989712112026, "to": 10, "width": 0.35883958848448105}, {"arrows": "to", "from": 7, "title": 0.14211779485497555, "to": 14, "width": 0.5684711794199022}, {"arrows": "to", "from": 12, "title": 0.1533737974377025, "to": 14, "width": 0.61349518975081}, {"arrows": "to", "from": 0, "title": 0.33023464184864054, "to": 22, "width": 1.3209385673945622}, {"arrows": "to", "from": 12, "title": 0.27990664592067227, "to": 22, "width": 1.119626583682689}, {"arrows": "to", "from": 0, "title": 0.009409832400143881, "to": 24, "width": 0.25}, {"arrows": "to", "from": 7, "title": 0.030738780422402554, "to": 24, "width": 0.25}, {"arrows": "to", "from": 12, "title": 0.024849085234937212, "to": 24, "width": 0.25}, {"arrows": "to", "from": 0, "title": 0.0698605455028147, "to": 25, "width": 0.2794421820112588}, {"arrows": "to", "from": 12, "title": 0.09330677041945315, "to": 25, "width": 0.3732270816778126}, {"arrows": "to", "from": 19, "title": 0.07592187715821183, "to": 25, "width": 0.3036875086328473}, {"arrows": "to", "from": 30, "title": 0.04054726420108643, "to": 27, "width": 0.25}, {"arrows": "to", "from": 6, "title": 0.09665698816415337, "to": 29, "width": 0.3866279526566135}, {"arrows": "to", "from": 19, "title": 0.05899141468850685, "to": 29, "width": 0.25}, {"arrows": "to", "from": 7, "title": 0.21290549299043657, "to": 30, "width": 0.8516219719617463}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {"nodes": {"font": {"face": "verdana", "strokeWidth": 3, "size": 24}}, "edges": {"color": {"inherit": true}, "font": {"face": "verdana"}, "smooth": {"type": "continuous", "forceDirection": "none", "roundness": 0.25}}, "physics": {"forceAtlas2Based": {"gravitationalConstant": -277, "springLength": 150, "springConstant": 0.06}, "minVelocity": 0.76, "solver": "forceAtlas2Based"}};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

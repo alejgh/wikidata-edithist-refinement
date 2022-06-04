@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "_stopper_kwargs_removed_comment": "stopper_kwargs config removed after HPO: {'frequency': 8, 'patience': 1, 'relative_delta': 0.01}",
+    "best_trial_evaluation": 0.1341657928460142,
+    "best_trial_number": 8,
+    "git_hash": "UNHASHED",
+    "version": "1.8.0"
+  },
+  "pipeline": {
+    "evaluation_kwargs": {
+      "device": "cpu"
+    },
+    "evaluator": "rankbased",
+    "filter_validation_when_testing": true,
+    "loss": "marginranking",
+    "loss_kwargs": {
+      "margin": 1.5626303483243538
+    },
+    "model": "rotate",
+    "model_kwargs": {
+      "embedding_dim": 768,
+      "random_seed": 42
+    },
+    "negative_sampler": "basic",
+    "negative_sampler_kwargs": {
+      "corruption_scheme": [
+        "head",
+        "tail"
+      ],
+      "num_negs_per_pos": 5
+    },
+    "optimizer": "adam",
+    "optimizer_kwargs": {
+      "lr": 0.00948977797540785
+    },
+    "testing": "<user defined>",
+    "training": "<user defined>",
+    "training_kwargs": {
+      "batch_size": 64,
+      "num_epochs": 13
+    },
+    "training_loop": "slcwa",
+    "validation": "<user defined>"
+  }
+}

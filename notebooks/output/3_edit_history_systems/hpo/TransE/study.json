@@ -1,0 +1,12 @@
+{
+  "evaluator": "rankbased",
+  "filter_validation_when_testing": true,
+  "loss": "marginranking",
+  "metric": "both.realistic.inverse_harmonic_mean_rank",
+  "model": "transe",
+  "negative_sampler": "edithistory",
+  "optimizer": "adam",
+  "pykeen_git_hash": "UNHASHED",
+  "pykeen_version": "1.8.1",
+  "training_loop": "slcwa"
+}

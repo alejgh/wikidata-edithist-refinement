@@ -32,7 +32,7 @@ There are two main docker-compose files provided in this repository:
 In this first option, we load an exported version of the edit history dataset into the MongoDB container, saving the time needed to fetch the edit history information and computing the diff of each revision.
 
 The main steps to run the code using this way are:
-1. Download the exported edit history dataset from [here]().
+1. Download the exported edit history dataset from [here](https://zenodo.org/record/6614264).
 2. Set up the user and password needed to access the MongoDB instance in the *.env-sample* file, and rename this file to *.env*. 
 3. Run the docker-compose.yml file to start up the MongoDB and Jupyter Notebook server.
 4. Load the exported dataset into MongoDB.
